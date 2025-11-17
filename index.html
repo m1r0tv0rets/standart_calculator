@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Стандартный калькулятор</title>
+    <link rel="icon" href="icon.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #2a3a6c);
+            padding: 20px;
+        }
+        
+        .calculator-container {
+            width: 100%;
+            max-width: 400px;
+            background: rgba(25, 25, 35, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transform: translateY(-20px);
+            animation: slideUp 0.6s ease-out forwards;
+        }
+        
+        @keyframes slideUp {
+            to {
+                transform: translateY(0);
+            }
+        }
+        
+        .display {
+            background: rgba(15, 15, 25, 0.9);
+            padding: 25px 20px;
+            text-align: right;
+            position: relative;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .operation-display {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 1.2rem;
+            min-height: 30px;
+            overflow-x: auto;
+            white-space: nowrap;
+            padding-bottom: 10px;
+            opacity: 0.8;
+        }
+        
+        .result-display {
+            color: white;
+            font-size: 2.8rem;
+            font-weight: 300;
+            min-height: 50px;
+            letter-spacing: 1px;
+        }
+        
+        .buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1px;
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .btn {
+            border: none;
+            outline: none;
+            background: rgba(30, 30, 45, 0.9);
+            color: white;
+            font-size: 1.4rem;
+            padding: 20px 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn:hover {
+            background: rgba(50, 50, 70, 0.9);
+            transform: scale(0.96);
+        }
+        
+        .btn:active {
+            background: rgba(60, 60, 90, 0.9);
+            transform: scale(0.92);
+        }
+        
+        .btn::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 5px;
+            height: 5px;
+            background: rgba(255, 255, 255, 0.3);
+            opacity: 0;
+            border-radius: 100%;
+            transform: scale(1, 1) translate(-50%);
+            transform-origin: 0 0;
+        }
+        
+        .btn:focus:not(:active)::after {
+            animation: ripple 0.6s ease-out;
+        }
+        
+        @keyframes ripple {
+            0% {
+                transform: scale(0, 0);
+                opacity: 0.5;
+            }
+            100% {
+                transform: scale(50, 50);
+                opacity: 0;
+            }
+        }
+        
+        .operator {
+            background: rgba(45, 45, 65, 0.95);
+            color: #FF9500;
+            font-weight: 500;
+        }
+        
+        .equals {
+            background: linear-gradient(135deg, #FF9500, #FF5E3A);
+            color: white;
+            font-weight: 500;
+            grid-column: span 2;
+        }
+        
+        .function {
+            color: #5AC8FA;
+        }
+        
+        .clear, .backspace {
+            color: #FF3B30;
+        }
+        
+        .memory {
+            color: #4CD964;
+        }
+        
+        .history-panel {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(25, 25, 35, 0.8);
+            border-radius: 15px;
+            padding: 15px;
+            max-height: 300px;
+            overflow-y: auto;
+            width: 250px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transform: translateX(20px);
+            opacity: 0;
+            transition: all 0.4s ease;
+            z-index: 100; /* Базовый z-index для десктопа */
+        }
+        
+        .history-panel.show {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            color: white;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 10px;
+        }
+        
+        .history-title {
+            font-size: 1.2rem;
+        }
+        
+        .clear-history {
+            background: rgba(255, 59, 48, 0.2);
+            border: none;
+            color: #FF3B30;
+            border-radius: 8px;
+            padding: 5px 10px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .clear-history:hover {
+            background: rgba(255, 59, 48, 0.3);
+        }
+        
+        .history-item {
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.95rem;
+        }
+        
+        .history-item:last-child {
+            border-bottom: none;
+        }
+        
+        .history-toggle {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(25, 25, 35, 0.8);
+            color: #5AC8FA;
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            font-size: 1.3rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+            z-index: 101; 
+        }
+        
+        .history-toggle:hover {
+            background: rgba(35, 35, 50, 0.9);
+            transform: rotate(10deg);
+        }
+        
+        .calculator-title {
+            text-align: center;
+            color: white;
+            padding: 15px 0;
+            font-size: 1.5rem;
+            background: rgba(0, 0, 0, 0.2);
+            letter-spacing: 1px;
+            font-weight: 300;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .calculator-title span {
+            color: #FF9500;
+            font-weight: 500;
+        }
+        
+        .memory-functions {
+            display: flex;
+            justify-content: space-between;
+            padding: 0 10px 10px;
+            background: rgba(15, 15, 25, 0.9);
+        }
+        
+        .memory-btn {
+            background: rgba(40, 40, 60, 0.7);
+            color: #4CD964;
+            border: none;
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .memory-btn:hover {
+            background: rgba(50, 50, 70, 0.8);
+        }
+        
+        .memory-display {
+            color: rgba(255, 255, 255, 0.7);
+            padding: 8px 12px;
+            font-size: 0.9rem;
+            text-align: center;
+        }
+        
+        @media (max-width: 500px) {
+            .btn {
+                padding: 18px 5px;
+                font-size: 1.3rem;
+            }
+            
+            .result-display {
+                font-size: 2.4rem;
+            }
+            
+            .history-panel {
+                width: 90%;
+                right: 5%;
+                left: 5%;
+                max-height: 200px;
+                z-index: 1000; 
+            }
+            
+            .history-toggle {
+                z-index: 1001;
+            }
+        }
+    </style>
+</head>
+<body>
+    <button class="history-toggle" id="historyToggle">
+        <i class="fas fa-history"></i>
+    </button>
+    
+    <div class="history-panel" id="historyPanel">
+        <div class="history-header">
+            <div class="history-title">История вычислений</div>
+            <button class="clear-history" id="clearHistory">Очистить</button>
+        </div>
+        <div id="historyList"></div>
+    </div>
+    
+    <div class="calculator-container">
+        <div class="calculator-title">Стандартный <span>калькулятор</span></div>
+        
+        <div class="display">
+            <div class="operation-display" id="operationDisplay"></div>
+            <div class="result-display" id="resultDisplay">0</div>
+        </div>
+        
+        <div class="memory-functions">
+            <div class="memory-display">Память: <span id="memoryValue">0</span></div>
+            <div>
+                <button class="memory-btn" id="mc">MC</button>
+                <button class="memory-btn" id="mr">MR</button>
+                <button class="memory-btn" id="mPlus">M+</button>
+                <button class="memory-btn" id="mMinus">M-</button>
+            </div>
+        </div>
+        
+        <div class="buttons">
+            <button class="btn function" data-value="sqrt">√</button>
+            <button class="btn function" data-value="square">x²</button>
+            <button class="btn function" data-value="percent">%</button>
+            <button class="btn clear" data-value="clear">C</button>
+            
+            <button class="btn function" data-value="sin">sin</button>
+            <button class="btn function" data-value="cos">cos</button>
+            <button class="btn function" data-value="tan">tan</button>
+            <button class="btn operator" data-value="/">÷</button>
+            
+            <button class="btn" data-value="1">1</button>
+            <button class="btn" data-value="2">2</button>
+            <button class="btn" data-value="3">3</button>
+            <button class="btn operator" data-value="*">×</button>
+            
+            <button class="btn" data-value="4">4</button>
+            <button class="btn" data-value="5">5</button>
+            <button class="btn" data-value="6">6</button>
+            <button class="btn operator" data-value="-">−</button>
+            
+            <button class="btn" data-value="7">7</button>
+            <button class="btn" data-value="8">8</button>
+            <button class="btn" data-value="9">9</button>
+            <button class="btn operator" data-value="+">+</button>
+            
+            <button class="btn backspace" data-value="backspace">⌫</button>
+            <button class="btn" data-value="0">0</button>
+            <button class="btn" data-value=".">.</button>
+            <button class="btn equals" data-value="=">=</button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Элементы интерфейса
+            const resultDisplay = document.getElementById('resultDisplay');
+            const operationDisplay = document.getElementById('operationDisplay');
+            const historyList = document.getElementById('historyList');
+            const historyPanel = document.getElementById('historyPanel');
+            const historyToggle = document.getElementById('historyToggle');
+            const clearHistoryBtn = document.getElementById('clearHistory');
+            const memoryValue = document.getElementById('memoryValue');
+            
+            // Переменные состояния
+            let currentInput = '0';
+            let previousInput = '';
+            let operation = null;
+            let shouldResetScreen = false;
+            let memory = 0;
+            let calculationHistory = [];
+            
+            // Обновление отображения
+            function updateDisplay() {
+                resultDisplay.textContent = currentInput;
+                if (operation !== null) {
+                    operationDisplay.textContent = `${previousInput} ${getOperationSymbol(operation)}`;
+                } else {
+                    operationDisplay.textContent = '';
+                }
+            }
+            
+            // Получение символа операции
+            function getOperationSymbol(op) {
+                const symbols = {
+                    '+': '+',
+                    '-': '−',
+                    '*': '×',
+                    '/': '÷'
+                };
+                return symbols[op] || op;
+            }
+            
+            // Добавление цифры
+            function appendNumber(number) {
+                if (currentInput === '0' || shouldResetScreen) {
+                    currentInput = number;
+                    shouldResetScreen = false;
+                } else {
+                    currentInput += number;
+                }
+                updateDisplay();
+            }
+            
+            // Добавление десятичной точки
+            function appendDecimal() {
+                if (shouldResetScreen) {
+                    currentInput = '0.';
+                    shouldResetScreen = false;
+                    return;
+                }
+                
+                if (!currentInput.includes('.')) {
+                    currentInput += '.';
+                }
+                updateDisplay();
+            }
+            
+            // Выбор операции
+            function chooseOperation(op) {
+                if (operation !== null) {
+                    calculate();
+                }
+                
+                previousInput = currentInput;
+                operation = op;
+                shouldResetScreen = true;
+                updateDisplay();
+            }
+            
+            // Вычисление результата
+            function calculate() {
+                if (operation === null || shouldResetScreen) return;
+                
+                let computation;
+                const prev = parseFloat(previousInput);
+                const current = parseFloat(currentInput);
+                
+                if (isNaN(prev) || isNaN(current)) return;
+                
+                switch (operation) {
+                    case '+':
+                        computation = prev + current;
+                        break;
+                    case '-':
+                        computation = prev - current;
+                        break;
+                    case '*':
+                        computation = prev * current;
+                        break;
+                    case '/':
+                        if (current === 0) {
+                            computation = 'Ошибка';
+                        } else {
+                            computation = prev / current;
+                        }
+                        break;
+                    default:
+                        return;
+                }
+                
+                // Форматируем результат для отображения
+                let formattedResult;
+                if (computation === 'Ошибка') {
+                    formattedResult = computation;
+                } else {
+                    formattedResult = formatResult(computation);
+                }
+                
+                // Добавляем в историю
+                const historyItem = {
+                    expression: `${previousInput} ${getOperationSymbol(operation)} ${currentInput}`,
+                    result: formattedResult
+                };
+                
+                calculationHistory.unshift(historyItem);
+                updateHistory();
+                
+                currentInput = formattedResult;
+                operation = null;
+                previousInput = '';
+                shouldResetScreen = true;
+                updateDisplay();
+            }
+            
+            // Форматирование результата
+            function formatResult(num) {
+                // Округляем слишком длинные числа
+                if (num.toString().length > 12) {
+                    return parseFloat(num.toFixed(10));
+                }
+                return num;
+            }
+            
+            // Выполнение специальных функций
+            function executeFunction(func) {
+                const current = parseFloat(currentInput);
+                if (isNaN(current)) return;
+                
+                let result;
+                
+                switch (func) {
+                    case 'sqrt':
+                        if (current < 0) {
+                            result = 'Ошибка';
+                        } else {
+                            result = Math.sqrt(current);
+                        }
+                        break;
+                    case 'square':
+                        result = current * current;
+                        break;
+                    case 'percent':
+                        result = current / 100;
+                        break;
+                    case 'sin':
+                        result = Math.sin(current * Math.PI / 180);
+                        break;
+                    case 'cos':
+                        result = Math.cos(current * Math.PI / 180);
+                        break;
+                    case 'tan':
+                        result = Math.tan(current * Math.PI / 180);
+                        break;
+                    default:
+                        return;
+                }
+                
+                // Добавляем в историю
+                const historyItem = {
+                    expression: `${func}(${current})`,
+                    result: formatResult(result)
+                };
+                
+                calculationHistory.unshift(historyItem);
+                updateHistory();
+                
+                currentInput = formatResult(result);
+                updateDisplay();
+            }
+            
+            // Очистка калькулятора
+            function clear() {
+                currentInput = '0';
+                previousInput = '';
+                operation = null;
+                updateDisplay();
+            }
+            
+            // Удаление последнего символа
+            function backspace() {
+                if (currentInput.length === 1) {
+                    currentInput = '0';
+                } else {
+                    currentInput = currentInput.slice(0, -1);
+                }
+                updateDisplay();
+            }
+            
+            // Обновление истории
+            function updateHistory() {
+                historyList.innerHTML = '';
+                calculationHistory.slice(0, 10).forEach(item => {
+                    const historyItem = document.createElement('div');
+                    historyItem.className = 'history-item';
+                    historyItem.innerHTML = `
+                        <div>${item.expression} =</div>
+                        <div style="font-weight:500;color:#FF9500">${item.result}</div>
+                    `;
+                    historyList.appendChild(historyItem);
+                });
+            }
+            
+            // Управление памятью
+            function clearMemory() {
+                memory = 0;
+                memoryValue.textContent = memory;
+            }
+            
+            function recallMemory() {
+                currentInput = memory.toString();
+                updateDisplay();
+            }
+            
+            function addToMemory() {
+                const current = parseFloat(currentInput);
+                if (!isNaN(current)) {
+                    memory += current;
+                    memoryValue.textContent = formatResult(memory);
+                }
+            }
+            
+            function subtractFromMemory() {
+                const current = parseFloat(currentInput);
+                if (!isNaN(current)) {
+                    memory -= current;
+                    memoryValue.textContent = formatResult(memory);
+                }
+            }
+            
+            // Обработчики событий кнопок
+            document.querySelectorAll('.btn').forEach(button => {
+                button.addEventListener('click', () => {
+                    const value = button.getAttribute('data-value');
+                    
+                    if (!isNaN(value)) {
+                        appendNumber(value);
+                    } else if (value === '.') {
+                        appendDecimal();
+                    } else if (['+', '-', '*', '/'].includes(value)) {
+                        chooseOperation(value);
+                    } else if (value === '=') {
+                        calculate();
+                    } else if (['sqrt', 'square', 'percent', 'sin', 'cos', 'tan'].includes(value)) {
+                        executeFunction(value);
+                    } else if (value === 'clear') {
+                        clear();
+                    } else if (value === 'backspace') {
+                        backspace();
+                    }
+                });
+            });
+            
+            // Обработчики для памяти
+            document.getElementById('mc').addEventListener('click', clearMemory);
+            document.getElementById('mr').addEventListener('click', recallMemory);
+            document.getElementById('mPlus').addEventListener('click', addToMemory);
+            document.getElementById('mMinus').addEventListener('click', subtractFromMemory);
+            
+            // Переключение панели истории
+            historyToggle.addEventListener('click', () => {
+                historyPanel.classList.toggle('show');
+            });
+            
+            // Очистка истории
+            clearHistoryBtn.addEventListener('click', () => {
+                calculationHistory = [];
+                updateHistory();
+            });
+            
+            // Закрытие истории при клике вне панели
+            document.addEventListener('click', (event) => {
+                if (!historyPanel.contains(event.target) && 
+                    !historyToggle.contains(event.target) && 
+                    historyPanel.classList.contains('show')) {
+                    historyPanel.classList.remove('show');
+                }
+            });
+            
+            // Инициализация дисплея
+            updateDisplay();
+        });
+    </script>
+</body>
+</html>
