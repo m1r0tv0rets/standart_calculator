@@ -1,2 +1,1 @@
-A standard calculator without unnecessary elements with a memory function and calculation history. 
-The calculator is written in JavaScript, HTML and CSS. The code is stored in index.html. You can use the code for your own purposes.
+Стандартный калькулятор без лишних элементов, с функцией памяти и историей вычислений. Калькулятор написан на JavaScript, HTML и CSS. Код хранится в файле index.html. Вы можете использовать его в своих целях.
