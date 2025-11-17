@@ -375,7 +375,6 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // Элементы интерфейса
             const resultDisplay = document.getElementById('resultDisplay');
             const operationDisplay = document.getElementById('operationDisplay');
             const historyList = document.getElementById('historyList');
@@ -384,7 +383,6 @@
             const clearHistoryBtn = document.getElementById('clearHistory');
             const memoryValue = document.getElementById('memoryValue');
             
-            // Переменные состояния
             let currentInput = '0';
             let previousInput = '';
             let operation = null;
@@ -392,7 +390,6 @@
             let memory = 0;
             let calculationHistory = [];
             
-            // Обновление отображения
             function updateDisplay() {
                 resultDisplay.textContent = currentInput;
                 if (operation !== null) {
@@ -402,7 +399,6 @@
                 }
             }
             
-            // Получение символа операции
             function getOperationSymbol(op) {
                 const symbols = {
                     '+': '+',
@@ -413,7 +409,6 @@
                 return symbols[op] || op;
             }
             
-            // Добавление цифры
             function appendNumber(number) {
                 if (currentInput === '0' || shouldResetScreen) {
                     currentInput = number;
@@ -424,7 +419,6 @@
                 updateDisplay();
             }
             
-            // Добавление десятичной точки
             function appendDecimal() {
                 if (shouldResetScreen) {
                     currentInput = '0.';
@@ -438,7 +432,6 @@
                 updateDisplay();
             }
             
-            // Выбор операции
             function chooseOperation(op) {
                 if (operation !== null) {
                     calculate();
@@ -450,7 +443,6 @@
                 updateDisplay();
             }
             
-            // Вычисление результата
             function calculate() {
                 if (operation === null || shouldResetScreen) return;
                 
@@ -481,7 +473,6 @@
                         return;
                 }
                 
-                // Форматируем результат для отображения
                 let formattedResult;
                 if (computation === 'Ошибка') {
                     formattedResult = computation;
@@ -489,7 +480,6 @@
                     formattedResult = formatResult(computation);
                 }
                 
-                // Добавляем в историю
                 const historyItem = {
                     expression: `${previousInput} ${getOperationSymbol(operation)} ${currentInput}`,
                     result: formattedResult
@@ -505,16 +495,13 @@
                 updateDisplay();
             }
             
-            // Форматирование результата
             function formatResult(num) {
-                // Округляем слишком длинные числа
                 if (num.toString().length > 12) {
                     return parseFloat(num.toFixed(10));
                 }
                 return num;
             }
             
-            // Выполнение специальных функций
             function executeFunction(func) {
                 const current = parseFloat(currentInput);
                 if (isNaN(current)) return;
@@ -548,7 +535,6 @@
                         return;
                 }
                 
-                // Добавляем в историю
                 const historyItem = {
                     expression: `${func}(${current})`,
                     result: formatResult(result)
@@ -561,7 +547,6 @@
                 updateDisplay();
             }
             
-            // Очистка калькулятора
             function clear() {
                 currentInput = '0';
                 previousInput = '';
@@ -569,7 +554,6 @@
                 updateDisplay();
             }
             
-            // Удаление последнего символа
             function backspace() {
                 if (currentInput.length === 1) {
                     currentInput = '0';
@@ -579,7 +563,6 @@
                 updateDisplay();
             }
             
-            // Обновление истории
             function updateHistory() {
                 historyList.innerHTML = '';
                 calculationHistory.slice(0, 10).forEach(item => {
@@ -620,7 +603,6 @@
                 }
             }
             
-            // Обработчики событий кнопок
             document.querySelectorAll('.btn').forEach(button => {
                 button.addEventListener('click', () => {
                     const value = button.getAttribute('data-value');
@@ -643,24 +625,20 @@
                 });
             });
             
-            // Обработчики для памяти
             document.getElementById('mc').addEventListener('click', clearMemory);
             document.getElementById('mr').addEventListener('click', recallMemory);
             document.getElementById('mPlus').addEventListener('click', addToMemory);
             document.getElementById('mMinus').addEventListener('click', subtractFromMemory);
             
-            // Переключение панели истории
             historyToggle.addEventListener('click', () => {
                 historyPanel.classList.toggle('show');
             });
             
-            // Очистка истории
             clearHistoryBtn.addEventListener('click', () => {
                 calculationHistory = [];
                 updateHistory();
             });
             
-            // Закрытие истории при клике вне панели
             document.addEventListener('click', (event) => {
                 if (!historyPanel.contains(event.target) && 
                     !historyToggle.contains(event.target) && 
@@ -669,7 +647,6 @@
                 }
             });
             
-            // Инициализация дисплея
             updateDisplay();
         });
     </script>
